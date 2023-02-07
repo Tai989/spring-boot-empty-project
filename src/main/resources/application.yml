@@ -1,0 +1,5 @@
+server:
+  port: 8877
+spring:
+  application:
+    name: spring-boot-empty-project
