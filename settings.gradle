@@ -1,1 +1,3 @@
 rootProject.name = 'spring-boot-empty-project'
+include 'gateway'
+

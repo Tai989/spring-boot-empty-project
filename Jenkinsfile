@@ -21,8 +21,8 @@ pipeline {
                 sh 'docker --version'
                 script{
                 if(params.ENVIRONMENT == 'dev'){
-                sh 'docker build --build-arg JAR_FILE=build/libs/*.jar -t 192.168.0.111:8050/spring-boot-empty-project .'
-                sh 'docker push 192.168.0.111:8050/spring-boot-empty-project'
+                sh 'docker build --build-arg JAR_FILE=build/libs/*.jar -t 192.168.0.111:8050/spring-boot-empty-project:${BUILD_ID} .'
+                sh 'docker push 192.168.0.111:8050/spring-boot-empty-project:${BUILD_ID}'
                 }
                 }
             }
@@ -30,7 +30,7 @@ pipeline {
         stage('Deploy to Kubernetes Cluster') {
             steps {
                 withCredentials([file(credentialsId: "k8s-credentials", variable: 'KUBECONFIG_FILE')]) {
-                   sh 'kubectl --kubeconfig="${KUBECONFIG_FILE}" apply -f deployment.yaml'
+                   sh 'kubectl --kubeconfig="${KUBECONFIG_FILE}" set image deployment/spring-boot-empty-project-deployment spring-boot-empty-project=192.168.0.111:8050/spring-boot-empty-project:${BUILD_ID}'
 }
             }
         }
