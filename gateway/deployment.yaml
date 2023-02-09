@@ -26,10 +26,10 @@ metadata:
   name: spring-boot-gateway-service
   namespace: spring-boot
   annotations:
-    kubernetes.io/elb.class: union
-    kubernetes.io/elb.health-check-flag: on
-    kubernetes.io/elb.id: c6a840af-d8d2-4188-b026-f4585ec355aa
-    kubernetes.io/elb.lb-algorithm: ROUND_ROBIN
+    kubernetes.io/elb.class: "union"
+    kubernetes.io/elb.health-check-flag: "on"
+    kubernetes.io/elb.id: "c6a840af-d8d2-4188-b026-f4585ec355aa"
+    kubernetes.io/elb.lb-algorithm: "ROUND_ROBIN"
 spec:
   selector:
     app: spring-boot-gateway
