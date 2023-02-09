@@ -24,6 +24,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: spring-boot-gateway-service
+  namespace: spring-boot
 spec:
   selector:
     app: spring-boot-gateway
