@@ -32,4 +32,4 @@ spec:
     - name: http
       port: 8877
       targetPort: 8877
-  type: NodePort
+  type: LoadBalancer
