@@ -13,7 +13,7 @@ class GatewayRouteConfigure {
         return builder.routes {
             route(id = "route-to-api-service") {
                 path("/api/**")
-                uri("http://api-service.default.svc.cluster.local:8876")
+                uri("http://spring-boot-rest-api-service.spring-boot.svc.cluster.local:8876")
             }
         }
     }
