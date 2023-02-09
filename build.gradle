@@ -33,8 +33,9 @@ tasks.withType(KotlinCompile) {
 tasks.named('test') {
     useJUnitPlatform()
 }
+bootJar {
+    enabled = false
+}
 jar {
-    baseName = "spring-boot-empty-project"
-    version = "1.0"
-    archiveName = "${baseName}-${version}.jar"
+    enabled = true
 }

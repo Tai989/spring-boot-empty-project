@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: spring-boot
+  name: spring-boot-rest-api-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spring-boot-rest-api
+  template:
+    metadata:
+      labels:
+        app: spring-boot-rest-api
+    spec:
+      containers:
+        - name: spring-boot-rest-api
+          image: 192.168.0.111:8050/spring-boot-rest-api
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8876
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: spring-boot-rest-api-service
+spec:
+  selector:
+    app: spring-boot-rest-api
+  ports:
+    - name: http
+      port: 8876
+      targetPort: 8876
+  type: ClusterIP

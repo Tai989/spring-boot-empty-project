@@ -42,3 +42,12 @@ tasks.withType(KotlinCompile) {
 tasks.named('test') {
     useJUnitPlatform()
 }
+
+bootJar {
+    archiveFileName = "spring-boot-gateway-${version}.jar"
+}
+jar {
+    baseName = "spring-boot-gateway"
+    version = "1.0"
+    archiveFileName = "${baseName}-${version}.jar"
+}

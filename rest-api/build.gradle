@@ -8,7 +8,7 @@ plugins {
 }
 
 group = 'com.chuqigong'
-version = '0.0.1-SNAPSHOT'
+version = '1.0'
 sourceCompatibility = '17'
 
 repositories {
@@ -32,4 +32,12 @@ tasks.withType(KotlinCompile) {
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+bootJar{
+    archiveFileName="spring-boot-rest-api-${version}.jar"
+}
+jar{
+    baseName="spring-boot-rest-api"
+    version= "1.0"
+    archiveFileName="${baseName}-${version}.jar"
 }
