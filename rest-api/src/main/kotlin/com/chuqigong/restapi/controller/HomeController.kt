@@ -21,7 +21,7 @@ class HomeController {
     }
     @GetMapping("/json")
     @ResponseBody
-    fun json():String{
-        return ObjectMapper().writeValueAsString(mapOf(Pair("username","konchoo"), Pair("age",28)))
+    fun json():Map<String,Any>{
+        return mapOf(Pair("name","Guest"), Pair("age",10))
     }
 }
