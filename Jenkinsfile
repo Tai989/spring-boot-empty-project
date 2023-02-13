@@ -68,7 +68,7 @@ pipeline {
                             if (env.ENVIRONMENT == 'dev') {
                                 sh "gradle build -b ${module}/build.gradle -x test"
                                 //${JOB_NAME} should be the same as git repo project name
-                                sh "docker build --build-arg JAR_FILE=build/libs/*.jar -t 192.168.0.111:8050/${PROJECT_NAME}-${module}:${IMAGE_TAG} -f ${module}/${DOCKERFILE}"
+                                sh "docker build --build-arg JAR_FILE=build/libs/*.jar -t 192.168.0.111:8050/${PROJECT_NAME}-${module}:${IMAGE_TAG} -f ${module}/${DOCKERFILE} ${module}"
                                 sh "docker push 192.168.0.111:8050/${PROJECT_NAME}-${module}:${IMAGE_TAG}"
                             } else {
                                 println "当前选择的环境待实现..."
