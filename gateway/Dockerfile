@@ -1,6 +1,12 @@
 # Use the official OpenJDK 17 image as the base image
 FROM openjdk:17-jdk-slim
 
+# Set the timezone to China Standard Time
+ENV TZ=Asia/Shanghai
+
+# Update the timezone data
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
 # Set the working directory to /app
 WORKDIR /app
 
