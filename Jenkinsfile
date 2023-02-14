@@ -1,29 +1,32 @@
 pipeline {
     environment {
-        //Change it to your project name
+        //部署项目名称
         PROJECT_NAME = "spring-boot-empty-project"
 
-        //Change it to your project git
+        //部署项目git仓库地址
         PROJECT_GIT_URL = "https://gitlab.com/KonChoo/spring-boot-empty-project.git"
 
-        //Change it to your project deployment branch
+        //分支名称
         GIT_BRANCH = "master"
 
-        //Change it to your git credentials store in jenkins or not when your project that can be public access
+        //访问git所需要的凭证（先添加到Jenkins中再在这里引用），不需要凭证访问可以不填
         GIT_CREDENTIALS = ""
 
-        //Change it to your image tag
+        //Docker构建镜像的tag 可以使用环境变量如${BUILD_ID}或者固定latest也行
         IMAGE_TAG = "${BUILD_ID}"
 
-        //Change it to your project Dockerfile
+        //打包时使用的Dockerfile文件位置 例如 Dockerfile project1/Dockerfile project2/Dockerfile-Dev 等 不要以/开始 直接以文件夹名称开始即可
         DOCKERFILE = "Dockerfile"
 
-        //Change it to your k8s deployment file for dev environment
+        //不是K8s时使用deployment.yaml(部署配置文件)文件位置 例如 deployment.yaml project1/deployment.yaml project2/deployment-dev.yaml 等 不要以/开始 直接以文件夹名称开始即可
         K8S_DEV_DEPLOYMENT_FILE = "deployment.yaml"
     }
     agent any
     tools {
+        //当前构建使用的工具如gradle7 jdk17 需要Jenkins中 "全局工具配置" 那里配置好再按名称在这里引用
+        //当前构建使用gradle7
         gradle 'gradle7'
+        //当前构建使用jdk17
         jdk 'jdk17'
     }
     stages {
@@ -66,9 +69,12 @@ pipeline {
                         array.each { module ->
                             echo "当前处理 ${module} 中..."
                             if (env.ENVIRONMENT == 'dev') {
-                                sh "gradle build -b ${module}/build.gradle -x test"
-                                //${JOB_NAME} should be the same as git repo project name
-                                sh "docker build --build-arg JAR_FILE=build/libs/*.jar -t 192.168.0.111:8050/${PROJECT_NAME}-${module}:${IMAGE_TAG} -f ${module}/${DOCKERFILE} ${module}"
+                                //使用gradle打包并跳过所有test
+                                //sh "gradle build -b ${module}/build.gradle -x test"
+                                sh "${module}/gradlew bootJar -Dspring.profiles.active=${env.ENVIRONMENT}"
+                                //使用docker构建镜像
+                                sh "docker build -t 192.168.0.111:8050/${PROJECT_NAME}-${module}:${IMAGE_TAG} -f ${module}/${DOCKERFILE} ${module}"
+                                //推送镜像到内网服务器上docker运行的registry2
                                 sh "docker push 192.168.0.111:8050/${PROJECT_NAME}-${module}:${IMAGE_TAG}"
                             } else {
                                 println "当前选择的环境待实现..."
@@ -92,12 +98,16 @@ pipeline {
                         array.each { module ->
                             println("当前部署到K8s的模块 ： ${module}")
                             if (env.ENVIRONMENT == "dev") {
+                                //读取k8s部署文件
                                 def yaml = readFile("${module}/${K8S_DEV_DEPLOYMENT_FILE}")
+                                //替换k8s的镜像名称
                                 yaml = yaml.replace('${IMAGE}', "192.168.0.111:8050/${PROJECT_NAME}-${module}:${IMAGE_TAG}")
                                 println("当前模块 ${module} 的k8s配置文件内容 : \n")
                                 println("${yaml}")
+                                //输出替换镜像名称后的k8s配置文件
                                 writeFile file: "${module}/${K8S_DEV_DEPLOYMENT_FILE}", text: yaml
                                 withCredentials([file(credentialsId: "k8s-credentials", variable: 'KUBECONFIG_FILE')]) {
+                                    //根据配置文件部署到集群
                                     sh "kubectl --kubeconfig=${KUBECONFIG_FILE} apply -f ${module}/${K8S_DEV_DEPLOYMENT_FILE}"
                                 }
                             } else {
