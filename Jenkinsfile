@@ -33,9 +33,6 @@ pipeline {
         stage('从Git仓库拉取代码') {
             steps {
                 script {
-                    checkout([$class: 'GitSCM',
-                              branches: [[name: "*/master"]],
-                              userRemoteConfigs: [[url: "${PROJECT_GIT_URL}"]]])
                     println "当前环境变量 : "
                     sh 'env'
                     println "当前目录位置 : "
@@ -43,7 +40,7 @@ pipeline {
                     println "当前目录位置所有文件 : "
                     sh 'ls'
                     if (env.modules == null || env.modules.trim().isEmpty()) {
-                        println("没有选择任何需要部署的项目，退出拉取代码的步骤")
+                        println("没有选择任何需要部署的项目，退出拉取代码")
                         currentBuild.result = "SUCCESS"
                         return
                     } else {
@@ -64,13 +61,13 @@ pipeline {
             steps {
                 script {
                     if (env.modules == null || env.modules.trim().isEmpty()) {
-                        println("没有选择任何需要部署的项目，退出Docker镜像构建步骤")
+                        println("没有选择任何需要部署的项目，退出Docker镜像构建")
                         currentBuild.result = "SUCCESS"
                         return
                     } else {
                         def array = env.modules.split(',')
                         array.each { module ->
-                            echo "当前处理 ${module} 中..."
+                            echo "docker当前构建项目 ${module} 中..."
                             if (env.ENVIRONMENT == 'dev') {
                                 //使用gradle打包并跳过所有test
                                 //sh "gradle build -b ${module}/build.gradle -x test"
@@ -93,19 +90,19 @@ pipeline {
             steps {
                 script {
                     if (env.modules == null || env.modules.trim().isEmpty()) {
-                        println("没有选择任何需要部署的项目 ，退出K8s部署的步骤")
+                        println("没有选择任何需要部署的项目 ，退出K8s部署")
                         currentBuild.result = "SUCCESS"
                         return
                     } else {
                         def array = env.modules.split(',')
                         array.each { module ->
-                            println("当前部署到K8s的模块 ： ${module}")
+                            println("当前部署到K8s的项目 ： ${module}")
                             if (env.ENVIRONMENT == "dev") {
                                 //读取k8s部署文件
                                 def yaml = readFile("${module}/${K8S_DEV_DEPLOYMENT_FILE}")
                                 //替换k8s的镜像名称
                                 yaml = yaml.replace('${IMAGE}', "192.168.0.111:8050/${PROJECT_NAME}-${module}:${IMAGE_TAG}")
-                                println("当前模块 ${module} 的k8s配置文件内容 : \n")
+                                println("当前部署 ${module} 的k8s配置文件 : \n")
                                 println("${yaml}")
                                 //输出替换镜像名称后的k8s配置文件
                                 writeFile file: "${module}/${K8S_DEV_DEPLOYMENT_FILE}", text: yaml
