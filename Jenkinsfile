@@ -1,13 +1,14 @@
 pipeline {
+    agent any
+    parameters {
+        gitParameter branchFilter: 'origin/(.*)', defaultValue: 'master', name: 'BRANCH', type: 'PT_BRANCH'
+    }
     environment {
         //部署项目名称
         PROJECT_NAME = "spring-boot-empty-project"
 
         //部署项目git仓库地址
         PROJECT_GIT_URL = "https://gitlab.com/KonChoo/spring-boot-empty-project.git"
-
-        //分支名称
-        GIT_BRANCH = "master"
 
         //访问git所需要的凭证（先添加到Jenkins中再在这里引用），不需要凭证访问可以不填
         GIT_CREDENTIALS = ""
@@ -21,7 +22,6 @@ pipeline {
         //不是K8s时使用deployment.yaml(部署配置文件)文件位置 例如 deployment.yaml project1/deployment.yaml project2/deployment-dev.yaml 等 不要以/开始 直接以文件夹名称开始即可
         K8S_DEV_DEPLOYMENT_FILE = "deployment.yaml"
     }
-    agent any
     tools {
         //当前构建使用的工具如gradle7 jdk17 需要Jenkins中 "全局工具配置" 那里配置好再按名称在这里引用
         //当前构建使用gradle7
@@ -33,6 +33,9 @@ pipeline {
         stage('从Git仓库拉取代码') {
             steps {
                 script {
+                    checkout([$class: 'GitSCM',
+                              branches: [[name: "*/master"]],
+                              userRemoteConfigs: [[url: "${PROJECT_GIT_URL}"]]])
                     println "当前环境变量 : "
                     sh 'env'
                     println "当前目录位置 : "
@@ -46,10 +49,10 @@ pipeline {
                     } else {
                         cleanWs()
                         if (env.GIT_CREDENTIALS == null || env.GIT_CREDENTIALS.trim().isEmpty()) {
-                            git branch: "${GIT_BRANCH}",
+                            git branch: "${params.BRANCH}",
                                     url: "${PROJECT_GIT_URL}"
                         } else {
-                            git branch: "${GIT_BRANCH}",
+                            git branch: "${params.BRANCH}",
                                     url: "${PROJECT_GIT_URL}",
                                     credentialsId: "${GIT_CREDENTIALS}"
                         }
