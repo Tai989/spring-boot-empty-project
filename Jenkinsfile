@@ -1,7 +1,7 @@
 pipeline {
     agent any
     parameters {
-        gitParameter branchFilter: '*origin/(.\\*)* ', defaultValue: 'master', name: 'BRANCH', type: 'PT_BRANCH'
+        gitParameter branchFilter: 'origin/(.*)', defaultValue: 'master', name: 'BRANCH', type: 'PT_BRANCH'
     }
     environment {
         //访问git所需要的凭证（先添加到Jenkins中再在这里引用），不需要凭证访问可以不填
