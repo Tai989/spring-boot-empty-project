@@ -24,7 +24,7 @@ pipeline {
         jdk 'jdk17'
     }
     stages {
-        stage('从Git仓库拉取代码') {
+        stage('Gradle构建项目和Docker打包镜像推送镜像') {
             steps {
                 script {
                     echo "当前环境变量 : "
@@ -33,28 +33,6 @@ pipeline {
                     sh 'pwd'
                     echo "当前目录位置所有文件 : "
                     sh 'ls'
-                    //cleanWs()
-                  /*  if (env.modules == null || env.modules.trim().isEmpty()) {
-                        echo "没有选择任何需要部署的项目，退出拉取代码"
-                        currentBuild.result = "SUCCESS"
-                        return
-                    } else {
-                        cleanWs()
-                        if (env.GIT_CREDENTIALS == null || env.GIT_CREDENTIALS.trim().isEmpty()) {
-                            git branch: "${params.BRANCH}",
-                                    url: "${GIT_URL}"
-                        } else {
-                            git branch: "${params.BRANCH}",
-                                    url: "${GIT_URL}",
-                                    credentialsId: "${GIT_CREDENTIALS}"
-                        }
-                    }*/
-                }
-            }
-        }
-        stage('构建项目的Docker镜像') {
-            steps {
-                script {
                     if (env.modules == null || env.modules.trim().isEmpty()) {
                         echo "没有选择任何需要部署的项目，退出Docker镜像构建"
                         currentBuild.result = "SUCCESS"
@@ -81,7 +59,7 @@ pipeline {
                 }
             }
         }
-        stage('部署项目到K8s集群') {
+        stage('部署Docker镜像到K8s集群') {
             steps {
                 script {
                     if (env.modules == null || env.modules.trim().isEmpty()) {
