@@ -4,12 +4,6 @@ pipeline {
         gitParameter branchFilter: 'origin/(.*)', defaultValue: 'master', name: 'BRANCH', type: 'PT_BRANCH'
     }
     environment {
-        //部署项目名称
-        PROJECT_NAME = "spring-boot-empty-project"
-
-        //部署项目git仓库地址
-        PROJECT_GIT_URL = "https://gitlab.com/KonChoo/spring-boot-empty-project.git"
-
         //访问git所需要的凭证（先添加到Jenkins中再在这里引用），不需要凭证访问可以不填
         GIT_CREDENTIALS = ""
 
@@ -33,24 +27,24 @@ pipeline {
         stage('从Git仓库拉取代码') {
             steps {
                 script {
-                    println "当前环境变量 : "
+                    echo "当前环境变量 : "
                     sh 'env'
-                    println "当前目录位置 : "
+                    echo "当前目录位置 : "
                     sh 'pwd'
-                    println "当前目录位置所有文件 : "
+                    echo "当前目录位置所有文件 : "
                     sh 'ls'
                     if (env.modules == null || env.modules.trim().isEmpty()) {
-                        println("没有选择任何需要部署的项目，退出拉取代码")
+                        echo "没有选择任何需要部署的项目，退出拉取代码"
                         currentBuild.result = "SUCCESS"
                         return
                     } else {
                         cleanWs()
                         if (env.GIT_CREDENTIALS == null || env.GIT_CREDENTIALS.trim().isEmpty()) {
                             git branch: "${params.BRANCH}",
-                                    url: "${PROJECT_GIT_URL}"
+                                    url: "${GIT_URL}"
                         } else {
                             git branch: "${params.BRANCH}",
-                                    url: "${PROJECT_GIT_URL}",
+                                    url: "${GIT_URL}",
                                     credentialsId: "${GIT_CREDENTIALS}"
                         }
                     }
@@ -61,7 +55,7 @@ pipeline {
             steps {
                 script {
                     if (env.modules == null || env.modules.trim().isEmpty()) {
-                        println("没有选择任何需要部署的项目，退出Docker镜像构建")
+                        echo "没有选择任何需要部署的项目，退出Docker镜像构建"
                         currentBuild.result = "SUCCESS"
                         return
                     } else {
@@ -73,11 +67,11 @@ pipeline {
                                 //sh "gradle build -b ${module}/build.gradle -x test"
                                 sh "${module}/gradlew bootJar -Dspring.profiles.active=${env.ENVIRONMENT}"
                                 //使用docker构建镜像
-                                sh "docker build -t 192.168.0.111:8050/${PROJECT_NAME}-${module}:${IMAGE_TAG} -f ${module}/${DOCKERFILE} ${module}"
+                                sh "docker build -t 192.168.0.111:8050/${JOB_NAME}-${module}:${IMAGE_TAG} -f ${module}/${DOCKERFILE} ${module}"
                                 //推送镜像到内网服务器上docker运行的registry2
-                                sh "docker push 192.168.0.111:8050/${PROJECT_NAME}-${module}:${IMAGE_TAG}"
+                                sh "docker push 192.168.0.111:8050/${JOB_NAME}-${module}:${IMAGE_TAG}"
                             } else {
-                                println "当前选择的环境待实现..."
+                                echo "当前选择的环境待实现..."
                                 currentBuild.result = "FAILURE"
                                 return
                             }
@@ -90,20 +84,20 @@ pipeline {
             steps {
                 script {
                     if (env.modules == null || env.modules.trim().isEmpty()) {
-                        println("没有选择任何需要部署的项目 ，退出K8s部署")
+                        echo "没有选择任何需要部署的项目 ，退出K8s部署"
                         currentBuild.result = "SUCCESS"
                         return
                     } else {
                         def array = env.modules.split(',')
                         array.each { module ->
-                            println("当前部署到K8s的项目 ： ${module}")
+                            echo "当前部署到K8s的项目 ： ${module}"
                             if (env.ENVIRONMENT == "dev") {
                                 //读取k8s部署文件
                                 def yaml = readFile("${module}/${K8S_DEV_DEPLOYMENT_FILE}")
                                 //替换k8s的镜像名称
-                                yaml = yaml.replace('${IMAGE}', "192.168.0.111:8050/${PROJECT_NAME}-${module}:${IMAGE_TAG}")
-                                println("当前部署 ${module} 的k8s配置文件 : \n")
-                                println("${yaml}")
+                                yaml = yaml.replace('${IMAGE}', "192.168.0.111:8050/${JOB_NAME}-${module}:${IMAGE_TAG}")
+                                ehco "当前部署 ${module} 的k8s配置文件 : \n"
+                                echo "${yaml}"
                                 //输出替换镜像名称后的k8s配置文件
                                 writeFile file: "${module}/${K8S_DEV_DEPLOYMENT_FILE}", text: yaml
                                 withCredentials([file(credentialsId: "k8s-credentials", variable: 'KUBECONFIG_FILE')]) {
@@ -111,7 +105,7 @@ pipeline {
                                     sh "kubectl --kubeconfig=${KUBECONFIG_FILE} apply -f ${module}/${K8S_DEV_DEPLOYMENT_FILE}"
                                 }
                             } else {
-                                println "当前选择的环境待实现..."
+                                echo "当前选择的环境待实现..."
                                 currentBuild.result = "FAILURE"
                                 return
                             }
