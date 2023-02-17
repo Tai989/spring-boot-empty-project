@@ -97,7 +97,7 @@ pipeline {
                                 def yaml = readFile("${module}/${K8S_DEV_DEPLOYMENT_FILE}")
                                 //替换k8s的镜像名称
                                 yaml = yaml.replace('${IMAGE}', "192.168.0.111:8050/${JOB_NAME}-${module}:${IMAGE_TAG}")
-                                ehco "当前部署 ${module} 的k8s配置文件 : \n"
+                                echo "当前部署 ${module} 的k8s配置文件 : \n"
                                 echo "${yaml}"
                                 //输出替换镜像名称后的k8s配置文件
                                 writeFile file: "${module}/${K8S_DEV_DEPLOYMENT_FILE}", text: yaml
