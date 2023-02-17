@@ -33,7 +33,8 @@ pipeline {
                     sh 'pwd'
                     echo "当前目录位置所有文件 : "
                     sh 'ls'
-                    if (env.modules == null || env.modules.trim().isEmpty()) {
+                    cleanWs()
+                  /*  if (env.modules == null || env.modules.trim().isEmpty()) {
                         echo "没有选择任何需要部署的项目，退出拉取代码"
                         currentBuild.result = "SUCCESS"
                         return
@@ -47,7 +48,7 @@ pipeline {
                                     url: "${GIT_URL}",
                                     credentialsId: "${GIT_CREDENTIALS}"
                         }
-                    }
+                    }*/
                 }
             }
         }
